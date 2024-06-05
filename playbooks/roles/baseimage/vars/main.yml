@@ -1,0 +1,4 @@
+---
+
+wanted_packages: ["vim", "screen", "dstat", "gpg", "curl", "wget", "net-tools", "lsof"]
+

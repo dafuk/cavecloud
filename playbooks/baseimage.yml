@@ -1,0 +1,7 @@
+---
+- name: base image run
+  hosts: localhost
+  gather_facts: True
+  become: yes
+  roles:
+    - baseimage

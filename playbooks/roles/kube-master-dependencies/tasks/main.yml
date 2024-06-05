@@ -1,0 +1,5 @@
+- name: install kubectl
+  apt:
+    name: kubectl={{ kubectl_ver }}
+    state: present
+    force: yes

@@ -1,0 +1,7 @@
+---
+kubelet_ver: 1.28.2-1.1
+kubeadm_ver: 1.28.2-1.1
+kubectl_ver: 1.28.2-1.1
+network_prefix: 192.168.0.2
+master_node: 192.168.0.200
+

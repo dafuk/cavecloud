@@ -1,0 +1,1 @@
+kubectl get po -A | grep Crash | awk '{print $1" "$2}' | while read ns pn; do kubectl delete po $pn -n $ns ; done

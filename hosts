@@ -1,0 +1,12 @@
+
+[kube-masters]
+master1.k8s.local ansible_host=192.168.0.200
+
+[kube-nodes]
+worker1.k8s.local ansible_host=192.168.0.201
+worker2.k8s.local ansible_host=192.168.0.202
+worker3.k8s.local ansible_host=192.168.0.203
+
+[debian:children]
+kube-masters
+kube-nodes

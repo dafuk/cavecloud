@@ -1,0 +1,59 @@
+- name: remove previously existing kube apt gpg
+  file:
+    path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    state: absent
+
+- name: remove previously existing kube apt repo
+  file:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    state: absent
+
+- name: save aptkey
+  ansible.builtin.shell:
+    cmd: "curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+
+- name: add kube apt repository
+  apt_repository:
+   repo: deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /
+   state: present
+   filename: 'kubernetes'
+
+- name: install kubelet
+  apt:
+    name: kubelet={{ kubelet_ver }}
+    state: present
+    update_cache: true
+
+- name: install kubenet
+  apt:
+    name: containernetworking-plugins
+    state: present
+
+- name: install kubeadm
+  apt:
+    name: kubeadm={{ kubeadm_ver }}
+    state: present
+
+- name: enable service docker
+  service:
+    name: docker
+    enabled: yes
+
+- name: install nfs-common
+  apt:
+    name: nfs-common
+    state: present
+
+- name:
+  copy:
+    src: config.tpl
+    dest: /etc/containerd/config.toml
+    mode: '0644'
+    owner: root
+    group: root
+    backup: no
+
+- name: restart containerd with new conf
+  ansible.builtin.service:
+    name: containerd
+    state: restarted

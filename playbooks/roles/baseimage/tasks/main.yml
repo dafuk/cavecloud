@@ -1,0 +1,64 @@
+---
+- name: Do an apt update and upgrade
+  block:
+    - name: ansible way for update
+      apt:
+        update_cache: yes
+    - name: Update all packages to the latest versions
+      apt:
+        upgrade: dist
+    - name: Remove da cache, save space
+      apt:
+        autoclean: yes
+    - name: Remove extra 
+      apt:
+        autoremove: yes
+
+- name: fix ifnames and serial console for grub
+  block:
+    - name: Configure GRUB to enable serial console 
+      copy:
+        src: grub.tpl
+        dest: /etc/default/grub
+        mode: '0644'
+        owner: root
+        group: root
+        backup: no
+    - name: Regenerate GRUB configuration
+      command: "/usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg"
+
+- name: Add local pub key to authorized_keys root
+  authorized_key:
+    user: root
+    key: "{{ lookup('file', 'id_rsa.pub') }}"
+    state: present
+
+- name: 
+  copy:
+    src: interfaces.tpl
+    dest: /etc/network/interfaces
+    mode: '0644'
+    owner: root
+    group: root
+    backup: no
+
+- name: Make sshd little faster
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: ".*UseDNS.*"
+    line: "UseDNS no"
+
+- name: Disable swap permanently
+  replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes
+
+
+- name: Install wanted packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ wanted_packages }}"
+

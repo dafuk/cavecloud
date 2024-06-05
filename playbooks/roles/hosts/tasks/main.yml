@@ -1,0 +1,70 @@
+- name: update hosts file
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item].ansible_host }} {{ item }}"
+    regexp: '.*{{ item }}$'
+  with_items: "{{ groups.all }}"
+
+- name: update resolv.conf with google dns
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver 8.8.8.8"
+
+- name: update resolv.conf with cloudflare dns
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver 1.1.1.1"
+
+
+- name: update host name
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Add sync and cachedrop
+  ansible.builtin.cron:
+    name: "add cachedrop"
+    minute: "0"
+    job: "sync && echo 3 >/proc/sys/vm/drop_caches"
+
+
+- name: install APT Transport HTTPS
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: get arch
+  shell: dpkg --print-architecture
+  register: arch_debian
+
+- name: get gpg key
+  get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: 0644
+    force: true
+
+- name: add docker apt repository key.
+  get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+    mode: 0644
+    force: true
+
+- name: add docker apt repository.
+  apt_repository:
+    repo: "deb [arch={{ arch_debian.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+    filename: docker
+
+- name: install docker and related components
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: latest
+    update_cache: true
+  
