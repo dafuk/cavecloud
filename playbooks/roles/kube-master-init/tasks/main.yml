@@ -1,6 +1,40 @@
-- name: initialize the cluster
-  command: kubeadm init --pod-network-cidr={{ network_prefix }}.0/24 --apiserver-advertise-address={{ master_node }}
-  args:
+#- name: initialize the cluster
+#  command: kubeadm init --pod-network-cidr={{ network_prefix }}.0/24 --apiserver-advertise-address={{ master_node }}
+#  args:
+#    creates: /root/cluster_initialized.txt
+#  register: kubeadm_init_raw
+- name: create an empty file for kubeadm-config
+  copy:
+    content: ""
+    dest: /etc/kubernetes/kubeadm-config.yaml
+    force: no
+
+
+- name: configuring the container runtime including its cgroup driver
+  blockinfile:
+    path: /etc/kubernetes/kubeadm-config.yaml
+    block: |
+         kind: ClusterConfiguration
+         apiVersion: kubeadm.k8s.io/v1beta3
+         networking:
+           podSubnet: "192.168.0.0/16"
+         ---
+         kind: KubeletConfiguration
+         apiVersion: kubelet.config.k8s.io/v1beta1
+         runtimeRequestTimeout: "15m"
+         cgroupDriver: "systemd"
+         systemReserved:
+           cpu: 100m
+           memory: 350M
+         kubeReserved:
+           cpu: 100m
+           memory: 50M
+         enforceNodeAllocatable:
+         - pods
+
+- name: initialize the cluster (this could take some time)
+  shell: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml
+  args: 
     creates: /root/cluster_initialized.txt
   register: kubeadm_init_raw
 
