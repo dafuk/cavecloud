@@ -24,7 +24,7 @@
     state: present
     update_cache: true
 
-- name: install kubenet
+- name: install kubelet
   apt:
     name: containernetworking-plugins
     state: present
