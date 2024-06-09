@@ -52,16 +52,27 @@
 
 - name: create .kube directory
   file:
-    path: /home/kube/.kube
+    path: /root/.kube
     state: directory
     mode: 0755
-    owner: kube
-    group: kube
+    owner: root
+    group: root
 
-- name: copy admin.conf to user's kube config
+- name: copy admin.conf to root's kube config
   copy:
     src: /etc/kubernetes/admin.conf
-    dest: /home/kube/.kube/config
+    dest: /root/.kube/config
     remote_src: yes
-    owner: kube
-    group: kube
+
+- name: Download kube-flannel to the cluster.
+  ansible.builtin.get_url:
+    url: https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+    dest: ~/kube-flannel.yaml
+    mode: '0664'
+
+- name: Apply kube-flannel  to the cluster.
+  kubernetes.core.k8s:
+    state: present
+    src: ~/kube-flannel.yaml
+
+
