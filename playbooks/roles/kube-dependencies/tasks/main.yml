@@ -46,7 +46,7 @@
 
 - name:
   copy:
-    src: config.tpl
+    src: containerd_conf.tpl
     dest: /etc/containerd/config.toml
     mode: '0644'
     owner: root
